@@ -1,7 +1,7 @@
 #include "raylib.h"
 
-const int screenWidth = 800;
-const int screenHeight = 450;
+const int screenWidth = 350;
+const int screenHeight = 600;
 
 bool isFirstWave = true;
 
