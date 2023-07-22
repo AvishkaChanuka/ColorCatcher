@@ -1,20 +1,32 @@
 #include "raylib.h"
 
-/*
- *******************************************
- * typedefs, structures & Functions
- *******************************************
-*/
+const int screenWidth = 800;
+const int screenHeight = 450;
 
+bool isFirstWave = true;
 
+Color colors[] = {RED,BLUE,GOLD,DARKGREEN};
 
-//Player
 typedef struct Player{
     Vector2 position;
     int width, height;
     Color color;
     float speed;
-}Player;
+} Player;
+
+typedef struct FallingObject{
+    Vector2 center;
+    float radius;
+    int sides;
+    float rotation;
+    Color color;
+    float speed;
+    bool isAlive;
+} FallingObject;
+
+Color RandomColor();
+void ObjectBehaviour(FallingObject *objects, int size, float deltaTime);
+void DrawObjects(FallingObject *objects, int size);
 
 int main(){
 
@@ -24,17 +36,13 @@ int main(){
      *******************************************
     */
 
-    const int screenWidth = 800;
-    const int screenHeight = 450;
-
     InitWindow(screenWidth,screenHeight,"Color Catcher");
     SetTargetFPS(60);
 
-    Color colors[] = {RED,BLUE,GOLD,DARKGREEN};
     int colorIndex = 0;
     int colorSize = sizeof (colors) / sizeof (colors[0]);
 
-    //Player
+    //Player Initialize
     Player player;
     player.width = 80;
     player.height = 20;
@@ -43,6 +51,9 @@ int main(){
     player.color = DARKGRAY;
     player.speed = 300;
 
+    //Falling  Objects
+    int noFallingObjects = 6;
+    FallingObject fallingObjects[noFallingObjects];
 
     while(!WindowShouldClose()){
 
@@ -79,7 +90,7 @@ int main(){
          *******************************************
         */
 
-        //Set player in the screen boundary
+        //Set the player in the screen boundary
         if(player.position.x < 0){
             player.position.x = 0;
         }
@@ -88,6 +99,9 @@ int main(){
         if(player.position.x > maxPlayerX){
             player.position.x = maxPlayerX;
         }
+
+        //Setup Falling Objects
+        ObjectBehaviour(fallingObjects,noFallingObjects, deltaTime);
 
         /*
          *******************************************
@@ -101,6 +115,9 @@ int main(){
         //Draw player
         DrawRectangle((int)player.position.x,(int)player.position.y,player.width,player.height,player.color);
 
+        //DrawObjects
+        DrawObjects(fallingObjects,noFallingObjects);
+
         EndDrawing();
     }
 
@@ -113,4 +130,63 @@ int main(){
     CloseWindow();
 
     return 0;
+}
+
+void ObjectBehaviour(FallingObject *objects, int size, float deltaTime){
+
+    for(int i = 0; i<size; i++){
+
+        if(objects[i].isAlive == false){
+            //Initialize object
+            objects[i].radius = 20;
+
+            objects[i].center.x = (float)GetRandomValue((int)(objects[i].radius * 2),(screenWidth - 2 * (int)objects[i].radius));
+            objects[i].center.y = -2 * objects[i].radius;
+            //objects[i].center.y = (float)GetRandomValue(-screenWidth,0);
+
+            objects[i].sides = 4;
+            objects[i].rotation = 45;
+            objects[i].speed = (float)GetRandomValue(100,120);
+
+            objects[i].color = RandomColor();
+
+            if(isFirstWave == true){
+                objects[i].isAlive = true;
+                isFirstWave = false;
+            }
+        }
+        else{
+            //Move Object
+            objects[i].center.y += objects[i].speed * deltaTime;
+
+            if(objects[i].center.y > (float)(screenHeight)/2){
+                if(i == size - 1){
+                    objects[0].isAlive = true;
+                }
+                else{
+                    objects[i+1].isAlive = true;
+                }
+            }
+
+            if(objects[i].center.y > (float)(screenHeight) + 2 * objects[i].radius){
+                objects[i].isAlive = false;
+            }
+        }
+    }
+
+}
+
+void DrawObjects(FallingObject *objects, int size){
+
+    for(int i = 0; i<size; i++){
+        if(objects[i].isAlive){
+            DrawPoly(objects[i].center, objects[i].sides, objects[i].radius, objects[i].rotation, objects[i].color);
+        }
+    }
+}
+
+Color RandomColor(){
+    int size = sizeof(colors) / sizeof(colors[0]);
+    int rand = GetRandomValue(0,size-1);
+    return colors[rand];
 }
