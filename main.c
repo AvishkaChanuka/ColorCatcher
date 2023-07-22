@@ -2,9 +2,11 @@
 
 /*
  *******************************************
- * typedefs and structures
+ * typedefs, structures & Functions
  *******************************************
 */
+
+
 
 //Player
 typedef struct Player{
@@ -28,6 +30,10 @@ int main(){
     InitWindow(screenWidth,screenHeight,"Color Catcher");
     SetTargetFPS(60);
 
+    Color colors[] = {RED,BLUE,GOLD,DARKGREEN};
+    int colorIndex = 0;
+    int colorSize = sizeof (colors) / sizeof (colors[0]);
+
     //Player
     Player player;
     player.width = 80;
@@ -48,12 +54,23 @@ int main(){
          *******************************************
         */
 
+        //Player Movement
         if(IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A)){
             player.position.x -= player.speed * deltaTime;
         }
 
         if(IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)){
             player.position.x += player.speed * deltaTime;
+        }
+
+        //Change Color
+        if(IsKeyPressed(KEY_SPACE)){
+
+            player.color = colors[colorIndex];
+            colorIndex++;
+            if(colorIndex == colorSize){
+                colorIndex = 0;
+            }
         }
 
         /*
