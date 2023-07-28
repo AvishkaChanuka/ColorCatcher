@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define MAX_SPEED 300
+#define MIN_SPEED 200
+
 const int screenWidth = 350;
 const int screenHeight = 600;
 
@@ -180,7 +183,7 @@ void ObjectBehaviour(FallingObject *objects, int size, float deltaTime){
 
             objects[i].sides = 4;
             objects[i].rotation = 45;
-            objects[i].speed = (float)GetRandomValue(100,120);
+            objects[i].speed = (float)GetRandomValue(MIN_SPEED,MAX_SPEED);
 
             objects[i].color = RandomColor();
 
