@@ -2,15 +2,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_SPEED 300
+#define MAX_SPEED 250
 #define MIN_SPEED 200
+#define NO_LIVES 3
 
 const int screenWidth = 350;
 const int screenHeight = 600;
 
 //UI
 int score = 0;
-int lives = 3;
+int lives = NO_LIVES;
 
 bool isFirstWave = true;
 
@@ -119,7 +120,6 @@ int main(){
         //Check Collision
         char isCollided = CheckCollision(fallingObjects,noFallingObjects,player);
         char scoreText[12], strScore[3];
-        char livesText[12], strLives[3];
 
         if(isCollided == 'P'){
             score++;
@@ -132,9 +132,7 @@ int main(){
         itoa(score,strScore,10);
         strcat(scoreText, strScore);
 
-        strcpy(livesText,"Lives: ");
-        itoa(lives,strLives,10);
-        strcat(livesText, strLives);
+        int liveBarLength = (screenWidth-20) * lives / NO_LIVES;
 
 
         /*
@@ -153,7 +151,9 @@ int main(){
         DrawObjects(fallingObjects,noFallingObjects);
 
         DrawText(scoreText,10,10,20,DARKGRAY);
-        DrawText(livesText,10,40,20,DARKGRAY);
+
+        //DrawRectangle(0,20,screenWidth,25,RAYWHITE);
+        DrawRectangle(10,40,liveBarLength,8,RED);
 
         EndDrawing();
     }
