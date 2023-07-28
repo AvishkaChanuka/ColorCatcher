@@ -1,7 +1,13 @@
 #include "raylib.h"
+#include <stdlib.h>
+#include <string.h>
 
 const int screenWidth = 350;
 const int screenHeight = 600;
+
+//UI
+int score = 0;
+int lives = 3;
 
 bool isFirstWave = true;
 
@@ -12,6 +18,7 @@ typedef struct Player{
     int width, height;
     Color color;
     float speed;
+    Rectangle bounds;
 } Player;
 
 typedef struct FallingObject{
@@ -27,6 +34,8 @@ typedef struct FallingObject{
 Color RandomColor();
 void ObjectBehaviour(FallingObject *objects, int size, float deltaTime);
 void DrawObjects(FallingObject *objects, int size);
+bool AreColorEqual(Color color1, Color color2);
+char CheckCollision(FallingObject *object, int size, Player player);
 
 int main(){
 
@@ -50,6 +59,7 @@ int main(){
     player.position.y = (float)(screenHeight - 50 - player.height);
     player.color = DARKGRAY;
     player.speed = 300;
+    player.bounds = (Rectangle){player.position.x,player.position.y,(float)player.width,(float)player.height};
 
     //Falling  Objects
     int noFallingObjects = 6;
@@ -103,6 +113,27 @@ int main(){
         //Setup Falling Objects
         ObjectBehaviour(fallingObjects,noFallingObjects, deltaTime);
 
+        //Check Collision
+        char isCollided = CheckCollision(fallingObjects,noFallingObjects,player);
+        char scoreText[12], strScore[3];
+        char livesText[12], strLives[3];
+
+        if(isCollided == 'P'){
+            score++;
+        }
+        else if(isCollided == 'D'){
+            lives--;
+        }
+
+        strcpy(scoreText,"Score: ");
+        itoa(score,strScore,10);
+        strcat(scoreText, strScore);
+
+        strcpy(livesText,"Lives: ");
+        itoa(lives,strLives,10);
+        strcat(livesText, strLives);
+
+
         /*
          *******************************************
          * Draw the scene
@@ -117,6 +148,9 @@ int main(){
 
         //DrawObjects
         DrawObjects(fallingObjects,noFallingObjects);
+
+        DrawText(scoreText,10,10,20,DARKGRAY);
+        DrawText(livesText,10,40,20,DARKGRAY);
 
         EndDrawing();
     }
@@ -170,6 +204,7 @@ void ObjectBehaviour(FallingObject *objects, int size, float deltaTime){
 
             if(objects[i].center.y > (float)(screenHeight) + 2 * objects[i].radius){
                 objects[i].isAlive = false;
+                lives--;
             }
         }
     }
@@ -189,4 +224,37 @@ Color RandomColor(){
     int size = sizeof(colors) / sizeof(colors[0]);
     int rand = GetRandomValue(0,size-1);
     return colors[rand];
+}
+
+char CheckCollision(FallingObject *object, int size, Player player){
+    bool isCollided = false;
+    Rectangle playerRec;
+    for(int i = 0; i<size; i++){
+
+        if(object[i].isAlive == true && object[i].center.y > (float)screenHeight/2){
+
+            playerRec = (Rectangle){player.position.x,player.position.y,(float)player.width,(float)player.height};
+            isCollided =  CheckCollisionCircleRec(object[i].center,object[i].radius,playerRec);
+
+            if(isCollided == true){
+                object[i].isAlive = false;
+
+                if(AreColorEqual(object[i].color,player.color)){
+                    return 'P';
+                }
+                else{
+                    return 'D';
+                }
+            }
+        }
+        else{
+            continue;
+        }
+    }
+
+    return 'N';
+}
+
+bool AreColorEqual(Color color1, Color color2){
+    return (color1.r == color2.r && color1.g == color2.g && color1.b == color2.b && color1.a == color2.a);
 }
