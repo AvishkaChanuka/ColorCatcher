@@ -17,6 +17,8 @@ bool isFirstWave = true;
 
 Color colors[] = {RED,BLUE,GOLD,DARKGREEN};
 
+typedef enum GameScreen {TITLE,GAMEPLAY,ENDING} GameScreen;
+
 typedef struct Player{
     Vector2 position;
     int width, height;
@@ -52,8 +54,13 @@ int main(){
     InitWindow(screenWidth,screenHeight,"Color Catcher");
     SetTargetFPS(60);
 
+    GameScreen currentScreen = TITLE;
+
     int colorIndex = 0;
     int colorSize = sizeof (colors) / sizeof (colors[0]);
+    int liveBarLength;
+
+    char scoreText[12];
 
     //Player Initialize
     Player player;
@@ -79,24 +86,45 @@ int main(){
          *******************************************
         */
 
-        //Player Movement
-        if(IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A)){
-            player.position.x -= player.speed * deltaTime;
+        switch (currentScreen) {
+            case TITLE:{
+
+                if(IsKeyPressed(KEY_ENTER)){
+                    currentScreen = GAMEPLAY;
+                }
+
+            }break;
+            case GAMEPLAY:{
+
+                //Player Movement
+                if(IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A)){
+                    player.position.x -= player.speed * deltaTime;
+                }
+
+                if(IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)){
+                    player.position.x += player.speed * deltaTime;
+                }
+
+                //Change Color
+                if(IsKeyPressed(KEY_SPACE)){
+
+                    player.color = colors[colorIndex];
+                    colorIndex++;
+                    if(colorIndex == colorSize){
+                        colorIndex = 0;
+                    }
+                }
+
+            }break;
+            case ENDING:{
+
+                if(IsKeyPressed(KEY_ENTER)){
+                    currentScreen = TITLE;
+                }
+
+            }break;
         }
 
-        if(IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)){
-            player.position.x += player.speed * deltaTime;
-        }
-
-        //Change Color
-        if(IsKeyPressed(KEY_SPACE)){
-
-            player.color = colors[colorIndex];
-            colorIndex++;
-            if(colorIndex == colorSize){
-                colorIndex = 0;
-            }
-        }
 
         /*
          *******************************************
@@ -104,35 +132,51 @@ int main(){
          *******************************************
         */
 
-        //Set the player in the screen boundary
-        if(player.position.x < 0){
-            player.position.x = 0;
+        switch (currentScreen) {
+            case TITLE:{
+
+            }break;
+            case GAMEPLAY:{
+
+                //Set the player in the screen boundary
+                if(player.position.x < 0){
+                    player.position.x = 0;
+                }
+
+                float maxPlayerX = (float)screenWidth-(float)player.width;
+                if(player.position.x > maxPlayerX){
+                    player.position.x = maxPlayerX;
+                }
+
+                //Setup Falling Objects
+                ObjectBehaviour(fallingObjects,noFallingObjects, deltaTime);
+
+                //Check Collision
+                char isCollided = CheckCollision(fallingObjects,noFallingObjects,player);
+                char strScore[3];
+
+                if(isCollided == 'P'){
+                    score++;
+                }
+                else if(isCollided == 'D'){
+                    lives--;
+                }
+
+                strcpy(scoreText,"Score: ");
+                itoa(score,strScore,10);
+                strcat(scoreText, strScore);
+
+                liveBarLength = (screenWidth-20) * lives / NO_LIVES;
+
+                if(lives <=0){
+                    currentScreen = ENDING;
+                }
+
+            }break;
+            case ENDING:{
+
+            }break;
         }
-
-        float maxPlayerX = (float)screenWidth-(float)player.width;
-        if(player.position.x > maxPlayerX){
-            player.position.x = maxPlayerX;
-        }
-
-        //Setup Falling Objects
-        ObjectBehaviour(fallingObjects,noFallingObjects, deltaTime);
-
-        //Check Collision
-        char isCollided = CheckCollision(fallingObjects,noFallingObjects,player);
-        char scoreText[12], strScore[3];
-
-        if(isCollided == 'P'){
-            score++;
-        }
-        else if(isCollided == 'D'){
-            lives--;
-        }
-
-        strcpy(scoreText,"Score: ");
-        itoa(score,strScore,10);
-        strcat(scoreText, strScore);
-
-        int liveBarLength = (screenWidth-20) * lives / NO_LIVES;
 
 
         /*
@@ -144,16 +188,37 @@ int main(){
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        //Draw player
-        DrawRectangle((int)player.position.x,(int)player.position.y,player.width,player.height,player.color);
+        switch (currentScreen) {
+            case TITLE:{
 
-        //DrawObjects
-        DrawObjects(fallingObjects,noFallingObjects);
+                DrawText("Color Catcher",30,40,40,DARKGRAY);
 
-        DrawText(scoreText,10,10,20,DARKGRAY);
+                DrawText("Press Enter to Start",60,screenHeight-40,20,DARKGRAY);
 
-        //DrawRectangle(0,20,screenWidth,25,RAYWHITE);
-        DrawRectangle(10,40,liveBarLength,8,RED);
+            }
+                break;
+            case GAMEPLAY:{
+
+                //Draw player
+                DrawRectangle((int)player.position.x,(int)player.position.y,player.width,player.height,player.color);
+
+                //DrawObjects
+                DrawObjects(fallingObjects,noFallingObjects);
+
+                DrawText(scoreText,10,10,20,DARKGRAY);
+
+                DrawRectangle(10,40,liveBarLength,8,RED);
+
+            }
+                break;
+            case ENDING:{
+                DrawText("Game Over",30,40,40,DARKGRAY);
+
+                DrawText("Press Enter to Restart",60,screenHeight-40,20,DARKGRAY);
+            }
+                break;
+
+        }
 
         EndDrawing();
     }
