@@ -170,6 +170,8 @@ int main(){
 
                 if(lives <=0){
                     currentScreen = ENDING;
+                    lives = 3;
+                    score = 0;
                 }
 
             }break;
@@ -177,7 +179,6 @@ int main(){
 
             }break;
         }
-
 
         /*
          *******************************************
@@ -212,7 +213,10 @@ int main(){
             }
                 break;
             case ENDING:{
-                DrawText("Game Over",30,40,40,DARKGRAY);
+                DrawText("Game Over",30,30,55,DARKGRAY);
+                DrawText("Color Catcher",60,120,30,DARKGRAY);
+
+                DrawText(scoreText,screenWidth/2-70,screenHeight/2,30,DARKGRAY);
 
                 DrawText("Press Enter to Restart",60,screenHeight-40,20,DARKGRAY);
             }
